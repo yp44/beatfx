@@ -6,6 +6,9 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 public class Cycle {
 
@@ -14,5 +17,7 @@ public class Cycle {
     private IntegerProperty duration = new SimpleIntegerProperty(4000);
     private IntegerProperty nbLoop = new SimpleIntegerProperty(1);
     private StringProperty nextId = new SimpleStringProperty("");
+
+    private List<Beat> beats = new ArrayList<>();
 
 }

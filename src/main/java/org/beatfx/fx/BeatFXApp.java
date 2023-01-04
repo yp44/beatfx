@@ -5,9 +5,12 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.beatfx.fx.widgets.CycleTab;
@@ -35,10 +38,10 @@ public class BeatFXApp extends Application  {
         this.stage = stage;
         this.tabPane = new TabPane();
 
-        CycleTab firstTab = new CycleTab("First");
+        CycleTab firstTab = new CycleTab(stage,"First");
         firstTab.setClosable(false);
 
-        Tab addTab = new CycleTab("+");
+        Tab addTab = new CycleTab(stage,"+");
         addTab.setClosable(false);
 
         tabPane.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {
@@ -46,7 +49,7 @@ public class BeatFXApp extends Application  {
             public void changed(ObservableValue<? extends Tab> observableValue, Tab oldTab, Tab newTab) {
                 if(newTab == addTab){
                     String newName = findName(tabPane.getTabs().stream().map(t -> t.getText()).collect(Collectors.toList()));
-                    CycleTab newCycleTab = new CycleTab(newName);
+                    CycleTab newCycleTab = new CycleTab(stage, newName);
                     tabPane.getTabs().addAll(tabPane.getTabs().size() - 1, Arrays.asList(newCycleTab));
                     tabPane.getSelectionModel().selectPrevious();
                     newCycleTab.redrawCycle(stage);
@@ -59,7 +62,10 @@ public class BeatFXApp extends Application  {
         stage.setTitle("BeatFX");
 
         Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-        stage.setScene(new Scene(tabPane, bounds.getWidth() / 2, bounds.getHeight() / 2));
+        VBox vbox = buildMenuBar(tabPane);
+        Scene scene = new Scene(vbox, bounds.getWidth() / 2, bounds.getHeight() / 2);
+
+        stage.setScene(scene);
 
         stage.widthProperty().addListener(new ChangeListener<Number>() {
             @Override
@@ -76,7 +82,26 @@ public class BeatFXApp extends Application  {
         });
 
         stage.show();
-        firstTab.redrawCycle(stage);
+    }
+
+    private VBox buildMenuBar(TabPane pane){
+        MenuBar menuBar = new MenuBar();
+        Menu actions = new Menu("Actions");
+        MenuItem play = new MenuItem("Play");
+        actions.getItems().add(play);
+        MenuItem stop = new MenuItem("Stop");
+        actions.getItems().add(stop);
+        menuBar.getMenus().add(actions);
+
+        play.setOnAction(e -> {
+            System.out.println("Play !");
+        });
+
+        stop.setOnAction(e -> {
+            System.out.println("Stop !");
+        });
+
+        return new VBox(menuBar, pane);
     }
 
     private void redrawCurrentCyclePane(){

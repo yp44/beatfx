@@ -4,20 +4,29 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.beatfx.config.Beat;
 import org.beatfx.config.Cycle;
 import org.beatfx.fx.BeatFXApp;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,26 +40,44 @@ public class CycleTab extends Tab {
 
     private Pane cyclePane;
 
+    private BeatPane beatConfPane;
+
     private Circle mainCircle;
+
+    private ImageView needle;
 
     private List<Circle> beatCircles = new ArrayList<>();
 
-    public CycleTab(String name) {
+    public CycleTab(Stage stage, String name) {
         super(name);
         cycleConf.getId().setValue(name);
-        buildUI();
+        buildUI(stage);
     }
 
     public Cycle getCycleConf() {
         return cycleConf;
     }
 
-    private void buildUI() {
+    private void buildUI(final Stage stage) {
         this.menuPane = buildMenuPane();
         this.cyclePane = buildCyclePane();
+        this.beatConfPane = new BeatPane();
+
+
+
+        SplitPane splitPane = new SplitPane();
+        splitPane.setOrientation(Orientation.VERTICAL);
+        splitPane.getItems().addAll(this.cyclePane, this.beatConfPane);
+        splitPane.getDividers().get(0).positionProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
+                redrawCycle(stage);
+            }
+        });
+
 
         VBox mainPane = new VBox();
-        mainPane.getChildren().addAll(menuPane, cyclePane);
+        mainPane.getChildren().addAll(menuPane, splitPane);
 
         this.setContent(mainPane);
     }
@@ -112,20 +139,26 @@ public class CycleTab extends Tab {
         mainCircle.setStrokeWidth(1);
         mainCircle.getStrokeDashArray().addAll(10.0, 10.0);
 
+        this.cycleConf.getBeats().clear();
         for (int i = 0; i < this.cycleConf.getNbSlots().get(); i++) {
+            Beat beat = new Beat("Beat #"+(i+1));
             Circle c = new Circle(BEAT_CIRCLE_RADIUS, Color.rgb(255, 200, 60));
             c.setCenterX(cycle.getWidth() / 2);
             c.setCenterY(cycle.getHeight() / 2);
             c.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>(){
                     public void handle(MouseEvent e){
-                        System.out.println("==> Click circle");
+                        beatConfPane.setBeat(beat);
                     }
             });
             this.beatCircles.add(c);
+            this.cycleConf.getBeats().add(beat);
         }
 
         cycle.getChildren().addAll(mainCircle);
         cycle.getChildren().addAll(this.beatCircles);
+
+        this.needle = new ImageView(new Image(CycleTab.class.getResourceAsStream("/needle.png")));
+        cycle.getChildren().add(needle);
 
         return cycle;
     }
@@ -136,22 +169,32 @@ public class CycleTab extends Tab {
         this.cyclePane.setPrefHeight(height);
 
         double minRadius = (cyclePane.getWidth() > cyclePane.getHeight() ? cyclePane.getHeight() : cyclePane.getWidth()) / 2;
+        double realRadius = minRadius - BEAT_CIRCLE_RADIUS - BeatFXApp.PADDING;
 
         double xCenter = cyclePane.getWidth() / 2;
         double yCenter = cyclePane.getHeight() / 2;
 
-        mainCircle.radiusProperty().setValue(minRadius - BEAT_CIRCLE_RADIUS - BeatFXApp.PADDING);
+        mainCircle.radiusProperty().setValue(realRadius);
         mainCircle.centerXProperty().setValue(xCenter);
         mainCircle.centerYProperty().setValue(yCenter);
 
         double angleStep = (2 * Math.PI) / this.beatCircles.size();
 
-        int i = 1;
+        int i = -2;
         for(Circle c : this.beatCircles){
             c.centerXProperty().setValue(xCenter + (mainCircle.radiusProperty().get() * Math.cos(angleStep * i)));
             c.centerYProperty().setValue(yCenter + (mainCircle.radiusProperty().get() * Math.sin(angleStep * i)));
             i++;
         }
+
+        /*double needleH = this.needle.getImage().getHeight();
+        double needleW = this.needle.getImage().getWidth();
+        double scaleH = needleH / minRadius;*/
+
+        this.needle.setFitHeight(realRadius);
+        this.needle.setPreserveRatio(true);
+        this.needle.xProperty().setValue(xCenter);
+        this.needle.yProperty().setValue(yCenter - this.needle.getBoundsInParent().getHeight());
     }
 
 }
