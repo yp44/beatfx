@@ -11,11 +11,11 @@ public class BeatConfig {
     /**
      * How many slot should be created ?
      */
-    private IntegerProperty nbSlots = new SimpleIntegerProperty(4);
+    private Integer nbSlots = 4;
 
     /**
      * Duration between two slots execution.
      */
-    private IntegerProperty slotDuration = new SimpleIntegerProperty(1000);
+    private Integer slotDuration = 1000;
 
 }
