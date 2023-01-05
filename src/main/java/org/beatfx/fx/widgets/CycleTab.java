@@ -34,6 +34,8 @@ public class CycleTab extends Tab {
 
     private final static int BEAT_CIRCLE_RADIUS = 40;
 
+    private final Stage stage;
+
     private final Cycle cycleConf = new Cycle();
 
     private HBox menuPane;
@@ -46,23 +48,23 @@ public class CycleTab extends Tab {
 
     private ImageView needle;
 
-    private List<Circle> beatCircles = new ArrayList<>();
+    private List<BeatCircleControler> beatCircles = new ArrayList<>();
 
     public CycleTab(Stage stage, String name) {
         super(name);
+        this.stage = stage;
         cycleConf.getId().setValue(name);
-        buildUI(stage);
+        buildUI();
     }
 
     public Cycle getCycleConf() {
         return cycleConf;
     }
 
-    private void buildUI(final Stage stage) {
+    private void buildUI() {
         this.menuPane = buildMenuPane();
-        this.cyclePane = buildCyclePane();
+        buildCyclePane();
         this.beatConfPane = new BeatPane();
-
 
 
         SplitPane splitPane = new SplitPane();
@@ -71,10 +73,9 @@ public class CycleTab extends Tab {
         splitPane.getDividers().get(0).positionProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
-                redrawCycle(stage);
+                redrawCycle();
             }
         });
-
 
         VBox mainPane = new VBox();
         mainPane.getChildren().addAll(menuPane, splitPane);
@@ -90,6 +91,7 @@ public class CycleTab extends Tab {
         nbSlotsCtrl.getValueFactory().valueProperty().addListener(new ChangeListener<Integer>() {
             @Override
             public void changed(ObservableValue<? extends Integer> observableValue, Integer oldInt, Integer newInt) {
+                System.out.println("Update nbSlots : " + newInt);
                 cycleConf.getNbSlots().setValue(newInt);
             }
         });
@@ -113,6 +115,14 @@ public class CycleTab extends Tab {
         TextField nextCtrl = new TextField(cycleConf.getNextId().get());
         nextCtrl.textProperty().bindBidirectional(cycleConf.getNextId());
 
+        Button refreshBtn = new Button("Refresh");
+
+        refreshBtn.setOnAction(e -> {
+            System.out.println("Refresh");
+            buildCyclePane();
+            redrawCycle();
+        });
+
 
         menu.getChildren().addAll(new Label("Number of slots"),
                 nbSlotsCtrl,
@@ -121,49 +131,57 @@ public class CycleTab extends Tab {
                 new Label("Loop"),
                 nbLoopCtrl,
                 new Label("Next cycle"),
-                nextCtrl);
+                nextCtrl,
+                refreshBtn);
 
         return menu;
     }
 
-    private Pane buildCyclePane() {
-        Pane cycle = new Pane();
+    private void buildCyclePane() {
+        if (this.cyclePane != null) {
+            System.out.println("CLEAR PANEL!!!");
+            this.cyclePane.getChildren().clear();
+        } else {
+            this.cyclePane = new Pane();
+        }
+
 
         //cycle.setBackground(new Background(new BackgroundFill(new Color(0.7, 0.5, 0.5, 1), new CornerRadii(0), new Insets(0, 0, 0, 0))));
-        cycle.setMaxHeight(Double.MAX_VALUE);
+        this.cyclePane.setMaxHeight(Double.MAX_VALUE);
 
         mainCircle = new Circle(100, Color.TRANSPARENT);
-        mainCircle.setCenterX(cycle.getWidth() / 2);
-        mainCircle.setCenterY(cycle.getHeight() / 2 + BEAT_CIRCLE_RADIUS);
+        mainCircle.setCenterX(this.cyclePane.getWidth() / 2);
+        mainCircle.setCenterY(this.cyclePane.getHeight() / 2 + BEAT_CIRCLE_RADIUS);
         mainCircle.setStroke(Color.BLACK);
         mainCircle.setStrokeWidth(1);
         mainCircle.getStrokeDashArray().addAll(10.0, 10.0);
 
         this.cycleConf.getBeats().clear();
-        for (int i = 0; i < this.cycleConf.getNbSlots().get(); i++) {
-            Beat beat = new Beat("Beat #"+(i+1));
-            Circle c = new Circle(BEAT_CIRCLE_RADIUS, Color.rgb(255, 200, 60));
-            c.setCenterX(cycle.getWidth() / 2);
-            c.setCenterY(cycle.getHeight() / 2);
-            c.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>(){
-                    public void handle(MouseEvent e){
-                        beatConfPane.setBeat(beat);
-                    }
+        this.beatCircles.clear();
+        double angleStep = (2 * Math.PI) / this.beatCircles.size();
+        int shift = -2;
+        for (int i = 0 + shift; i < this.cycleConf.getNbSlots().get() + shift; i++) {
+            Beat beat = new Beat("Beat #" + (i + 3));
+            BeatCircleControler c = new BeatCircleControler(BEAT_CIRCLE_RADIUS, Color.rgb(255, 200, 60), i * angleStep);
+            c.setCenterX(this.cyclePane.getWidth() / 2);
+            c.setCenterY(this.cyclePane.getHeight() / 2);
+            c.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+                public void handle(MouseEvent e) {
+                    beatConfPane.setBeat(beat);
+                }
             });
             this.beatCircles.add(c);
             this.cycleConf.getBeats().add(beat);
         }
 
-        cycle.getChildren().addAll(mainCircle);
-        cycle.getChildren().addAll(this.beatCircles);
+        this.cyclePane.getChildren().addAll(mainCircle);
+        this.cyclePane.getChildren().addAll(this.beatCircles);
 
         this.needle = new ImageView(new Image(CycleTab.class.getResourceAsStream("/needle.png")));
-        cycle.getChildren().add(needle);
-
-        return cycle;
+        this.cyclePane.getChildren().add(needle);
     }
 
-    public void redrawCycle(Stage stage) {
+    public void redrawCycle() {
         double menuHeight = menuPane.getPrefHeight();
         double height = stage.getHeight() - menuHeight;
         this.cyclePane.setPrefHeight(height);
@@ -178,18 +196,16 @@ public class CycleTab extends Tab {
         mainCircle.centerXProperty().setValue(xCenter);
         mainCircle.centerYProperty().setValue(yCenter);
 
+        System.out.println("===> size : " + this.beatCircles.size());
+
         double angleStep = (2 * Math.PI) / this.beatCircles.size();
 
-        int i = -2;
-        for(Circle c : this.beatCircles){
-            c.centerXProperty().setValue(xCenter + (mainCircle.radiusProperty().get() * Math.cos(angleStep * i)));
-            c.centerYProperty().setValue(yCenter + (mainCircle.radiusProperty().get() * Math.sin(angleStep * i)));
+        int i = 0;
+        for (BeatCircleControler c : this.beatCircles) {
+            c.centerXProperty().setValue(xCenter + (mainCircle.radiusProperty().get() * Math.cos(angleStep * i - (Math.PI / 2))));
+            c.centerYProperty().setValue(yCenter + (mainCircle.radiusProperty().get() * Math.sin(angleStep * i - (Math.PI / 2))));
             i++;
         }
-
-        /*double needleH = this.needle.getImage().getHeight();
-        double needleW = this.needle.getImage().getWidth();
-        double scaleH = needleH / minRadius;*/
 
         this.needle.setFitHeight(realRadius);
         this.needle.setPreserveRatio(true);

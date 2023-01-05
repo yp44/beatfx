@@ -52,7 +52,7 @@ public class BeatFXApp extends Application  {
                     CycleTab newCycleTab = new CycleTab(stage, newName);
                     tabPane.getTabs().addAll(tabPane.getTabs().size() - 1, Arrays.asList(newCycleTab));
                     tabPane.getSelectionModel().selectPrevious();
-                    newCycleTab.redrawCycle(stage);
+                    newCycleTab.redrawCycle();
                 }
             }
         });
@@ -105,7 +105,7 @@ public class BeatFXApp extends Application  {
     }
 
     private void redrawCurrentCyclePane(){
-        ((CycleTab)this.tabPane.getSelectionModel().getSelectedItem()).redrawCycle(this.stage);
+        ((CycleTab)this.tabPane.getSelectionModel().getSelectedItem()).redrawCycle();
     }
 
     private String findName(Collection names){
