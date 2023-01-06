@@ -15,10 +15,10 @@ import java.io.File;
 
 public class BeatPane extends HBox {
 
-    private Label beatID = new Label("#");
+    private TextField beatID = new TextField("#");
     private TextField file = new TextField("");
 
-    private FileChangeListener lastFileChangeListener;
+    private Beat lastBeat = null;
 
 
     public BeatPane() {
@@ -27,13 +27,15 @@ public class BeatPane extends HBox {
     }
 
     public void setBeat(Beat beat) {
-        if (lastFileChangeListener != null) {
-            this.file.textProperty().removeListener(lastFileChangeListener);
+        if(lastBeat != null){
+            this.beatID.textProperty().unbindBidirectional(lastBeat.getId());
+            this.file.textProperty().unbindBidirectional(lastBeat.getFile());
         }
-        this.beatID.textProperty().setValue(beat.getId().get());
-        this.file.setText(beat.getFile().get());
-        lastFileChangeListener = new FileChangeListener(beat.getFile());
-        this.file.textProperty().addListener(lastFileChangeListener); //.bindBidirectional(beat.getFile());
+
+        this.beatID.textProperty().bindBidirectional(beat.getId());
+        this.file.textProperty().bindBidirectional(beat.getFile());
+
+        this.lastBeat = beat;
     }
 
     private void buildUI() {
@@ -47,20 +49,6 @@ public class BeatPane extends HBox {
             file.textProperty().setValue(f.getAbsolutePath());
         });
         this.getChildren().addAll(this.beatID, new Label("MP3 file"), file, selectFile);
-    }
-
-    private final static class FileChangeListener implements ChangeListener<String> {
-
-        private StringProperty fileProperty;
-
-        public FileChangeListener(StringProperty fileProperty) {
-            this.fileProperty = fileProperty;
-        }
-
-        @Override
-        public void changed(ObservableValue<? extends String> observableValue, String oldFile, String newFile) {
-            fileProperty.setValue(newFile);
-        }
     }
 
 }

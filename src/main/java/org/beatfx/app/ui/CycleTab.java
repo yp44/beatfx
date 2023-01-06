@@ -147,7 +147,7 @@ public class CycleTab extends Tab {
         double angleStep = (2 * Math.PI) / this.cycle.getNbSlots().get();
         for (int i = 0; i < this.cycle.getNbSlots().get(); i++) {
             double angle = (i * angleStep) - (Math.PI / 2);
-            Beat beat = new Beat("Beat #" + (i+1), angle);
+            Beat beat = new Beat(Defaults.NEW_BEAT_NAME + (i+1), angle);
             Circle c = new Circle(BEAT_CIRCLE_RADIUS, Color.rgb(255, 200, 60));
             c.setCenterX(this.cyclePane.getWidth() / 2);
             c.setCenterY(this.cyclePane.getHeight() / 2);
