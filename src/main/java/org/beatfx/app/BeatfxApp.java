@@ -3,6 +3,7 @@ package org.beatfx.app;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Task;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Menu;
@@ -12,6 +13,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.beatfx.app.model.BeatfxModel;
+import org.beatfx.app.service.Player;
 import org.beatfx.app.ui.BeatfxPane;
 
 public class BeatfxApp extends Application {
@@ -61,7 +63,7 @@ public class BeatfxApp extends Application {
         menuBar.getMenus().add(actions);
 
         play.setOnAction(e -> {
-            System.out.println("Play !");
+            play();
         });
 
         stop.setOnAction(e -> {
@@ -71,6 +73,23 @@ public class BeatfxApp extends Application {
         return new VBox(menuBar, pane);
     }
 
+    private void play(){
+        Task<Void> playTask = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                try {
+                    Player player = new Player(BeatfxApp.this.beatfxModel);
+                    player.play();
+                }
+                catch (Exception e){
+                    System.err.println("Exception in play thread : " + e.getMessage());
+                    e.printStackTrace(System.err);
+                }
+                return null;
+            }
+        };
+        new Thread(playTask).start();
+    }
 
     public static void main(String[] args) {
         launch();

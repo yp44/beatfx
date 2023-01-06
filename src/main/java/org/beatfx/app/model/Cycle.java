@@ -50,4 +50,8 @@ public class Cycle {
         return this.beats.get(i);
     }
 
+    public List<Beat> getBeats(){
+        return new ArrayList<>(this.beats);
+    }
+
 }

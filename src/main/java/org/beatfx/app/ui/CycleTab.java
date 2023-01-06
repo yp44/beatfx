@@ -91,6 +91,7 @@ public class CycleTab extends Tab {
         menu.setPadding(new Insets(Defaults.PADDING, Defaults.PADDING, Defaults.PADDING, Defaults.PADDING));
         menu.setSpacing(Defaults.PADDING);
         Spinner<Integer> nbSlotsCtrl = new Spinner<>(1, 100, cycle.getNbSlots().get());
+        nbSlotsCtrl.editableProperty().setValue(true);
         nbSlotsCtrl.getValueFactory().valueProperty().addListener(new ChangeListener<Integer>() {
             @Override
             public void changed(ObservableValue<? extends Integer> observableValue, Integer oldInt, Integer newInt) {
@@ -100,7 +101,8 @@ public class CycleTab extends Tab {
         });
 
         Spinner<Integer> durationCtrl = new Spinner<>(1, 3600000, cycle.getDuration().get());
-        nbSlotsCtrl.getValueFactory().valueProperty().addListener(new ChangeListener<Integer>() {
+        durationCtrl.editableProperty().setValue(true);
+        durationCtrl.getValueFactory().valueProperty().addListener(new ChangeListener<Integer>() {
             @Override
             public void changed(ObservableValue<? extends Integer> observableValue, Integer oldInt, Integer newInt) {
                 cycle.getDuration().setValue(newInt);

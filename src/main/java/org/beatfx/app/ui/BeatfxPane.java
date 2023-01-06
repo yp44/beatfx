@@ -28,6 +28,10 @@ public class BeatfxPane extends VBox {
         buildUI();
     }
 
+    public BeatfxModel getBeatfxModel() {
+        return this.beatfxModel;
+    }
+
     private void buildUI() {
         addTab.setClosable(false);
         cyclesPane.getTabs().add(addTab);
