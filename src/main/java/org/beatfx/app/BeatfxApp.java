@@ -1,0 +1,78 @@
+package org.beatfx.app;
+
+import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Scene;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.layout.VBox;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
+import org.beatfx.app.model.BeatfxModel;
+import org.beatfx.app.ui.BeatfxPane;
+
+public class BeatfxApp extends Application {
+
+    private BeatfxModel beatfxModel = new BeatfxModel();
+
+    @Override
+    public void start(Stage stage) throws Exception {
+
+        buildUI(stage);
+
+    }
+
+    private void buildUI(Stage stage) {
+
+        BeatfxPane beatfxPane = new BeatfxPane(beatfxModel);
+
+        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+        VBox vbox = buildMenuBar(beatfxPane);
+        Scene scene = new Scene(vbox, bounds.getWidth() / 2, bounds.getHeight() / 2);
+
+        stage.widthProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number oldWidth, Number newWidth) {
+                beatfxPane.stageResized(stage);
+            }
+        });
+
+        stage.heightProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number oldWidth, Number newWidth) {
+                beatfxPane.stageResized(stage);
+            }
+        });
+
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    private VBox buildMenuBar(BeatfxPane pane) {
+        MenuBar menuBar = new MenuBar();
+        Menu actions = new Menu("Actions");
+        MenuItem play = new MenuItem("Play");
+        actions.getItems().add(play);
+        MenuItem stop = new MenuItem("Stop");
+        actions.getItems().add(stop);
+        menuBar.getMenus().add(actions);
+
+        play.setOnAction(e -> {
+            System.out.println("Play !");
+        });
+
+        stop.setOnAction(e -> {
+            System.out.println("Stop !");
+        });
+
+        return new VBox(menuBar, pane);
+    }
+
+
+    public static void main(String[] args) {
+        launch();
+    }
+}

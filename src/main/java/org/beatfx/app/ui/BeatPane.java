@@ -1,6 +1,5 @@
-package org.beatfx.fx.widgets;
+package org.beatfx.app.ui;
 
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -8,19 +7,19 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
-import org.beatfx.config.Beat;
-import org.beatfx.fx.BeatFXApp;
+import org.beatfx.app.model.Beat;
+import org.beatfx.app.util.Defaults;
 
 import java.io.File;
 
 public class BeatPane extends HBox {
 
     private Label beatID = new Label("#");
-    private TextField file = new TextField("Please, select a file");
+    private TextField file = new TextField("");
 
     private FileChangeListener lastFileChangeListener;
+
 
     public BeatPane() {
         super();
@@ -38,7 +37,7 @@ public class BeatPane extends HBox {
     }
 
     private void buildUI() {
-        this.setSpacing(BeatFXApp.PADDING);
+        this.setSpacing(Defaults.PADDING);
         file.setMinWidth(300);
         Button selectFile = new Button("...");
         selectFile.setOnAction(e -> {
