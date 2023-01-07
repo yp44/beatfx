@@ -6,6 +6,8 @@ import org.beatfx.app.model.BeatfxModel;
 import org.beatfx.app.model.Cycle;
 import org.beatfx.app.service.player.CyclePlayer;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class Player {
 
     private BeatfxModel beatfxModel;
@@ -19,14 +21,25 @@ public class Player {
         Cycle first = beatfxModel.getCycles().get(0);
         CyclePlayer cyclePlayer = new CyclePlayer(first);
 
+        AtomicInteger nbActivePlayer = new AtomicInteger(0);
+
         int i = 1;
         for(MediaPlayer mediaPlayer : cyclePlayer.getMediaPlayer()){
             System.out.println("Play " + i);
+            nbActivePlayer.incrementAndGet();
             mediaPlayer.play();
+            mediaPlayer.setOnEndOfMedia(() -> {
+                nbActivePlayer.decrementAndGet();
+            });
             int sleep = cyclePlayer.getDuration();
             System.out.println("SLEEP : " + sleep);
             Thread.sleep(sleep);
             i++;
+        }
+
+        // Wait for all player to have finished
+        while(nbActivePlayer.get() > 0) {
+            Thread.sleep(1000);
         }
 
     }

@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -54,29 +55,20 @@ public class CycleTab extends Tab {
         buildUI();
     }
 
-    public Cycle getCycle(){
-        return this.cycle;
-    }
 
     public void stageResized(Stage stage){
         redrawCycle(stage);
     }
 
     private void buildUI() {
+        this.textProperty().bindBidirectional(this.cycle.getId());
+
         this.menuPane = buildMenuPane();
         buildCyclePane();
         this.beatConfPane = new BeatPane();
 
-
-        SplitPane splitPane = new SplitPane();
-        splitPane.setOrientation(Orientation.VERTICAL);
-        splitPane.getItems().addAll(this.cyclePane, this.beatConfPane);
-        splitPane.getDividers().get(0).positionProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
-                redrawCycle();
-            }
-        });
+        VBox splitPane = new VBox();
+        splitPane.getChildren().addAll(this.cyclePane, this.beatConfPane);
 
         VBox mainPane = new VBox();
         mainPane.getChildren().addAll(menuPane, splitPane);
@@ -90,24 +82,17 @@ public class CycleTab extends Tab {
         HBox menu = new HBox();
         menu.setPadding(new Insets(Defaults.PADDING, Defaults.PADDING, Defaults.PADDING, Defaults.PADDING));
         menu.setSpacing(Defaults.PADDING);
-        Spinner<Integer> nbSlotsCtrl = new Spinner<>(1, 100, cycle.getNbSlots().get());
-        nbSlotsCtrl.editableProperty().setValue(true);
-        nbSlotsCtrl.getValueFactory().valueProperty().addListener(new ChangeListener<Integer>() {
-            @Override
-            public void changed(ObservableValue<? extends Integer> observableValue, Integer oldInt, Integer newInt) {
-                System.out.println("Update nbSlots : " + newInt);
-                cycle.getNbSlots().setValue(newInt);
-            }
-        });
 
-        Spinner<Integer> durationCtrl = new Spinner<>(1, 3600000, cycle.getDuration().get());
+        TextField idCtrl = new TextField();
+        idCtrl.textProperty().bindBidirectional(this.cycle.getId());
+
+        Spinner<Number> nbSlotsCtrl = new Spinner<>(1, 100, cycle.getNbSlots().get());
+        nbSlotsCtrl.editableProperty().setValue(true);
+        nbSlotsCtrl.getValueFactory().valueProperty().bindBidirectional(this.cycle.getNbSlots());
+
+        Spinner<Number> durationCtrl = new Spinner<>(1, 3600000, cycle.getDuration().get());
         durationCtrl.editableProperty().setValue(true);
-        durationCtrl.getValueFactory().valueProperty().addListener(new ChangeListener<Integer>() {
-            @Override
-            public void changed(ObservableValue<? extends Integer> observableValue, Integer oldInt, Integer newInt) {
-                cycle.getDuration().setValue(newInt);
-            }
-        });
+        durationCtrl.getValueFactory().valueProperty().bindBidirectional(cycle.getDuration());
 
         Button refreshBtn = new Button("Refresh");
 
@@ -116,7 +101,10 @@ public class CycleTab extends Tab {
             redrawCycle();
         });
 
-        menu.getChildren().addAll(new Label("Number of slots"),
+        menu.getChildren().addAll(
+                new Label("Id"),
+                idCtrl,
+                new Label("Number of slots"),
                 nbSlotsCtrl,
                 new Label("Duration"),
                 durationCtrl,
