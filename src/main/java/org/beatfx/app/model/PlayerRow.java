@@ -9,6 +9,8 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import lombok.Data;
 
+import java.util.stream.Collectors;
+
 @Data
 public class PlayerRow {
 
@@ -32,6 +34,25 @@ public class PlayerRow {
      */
     private ListProperty<Cycle> cycles = new SimpleListProperty<>(FXCollections.observableArrayList());
 
+    public boolean hasCycle(String id){
+        if(id == null || id.isEmpty()){
+            return false;
+        }
+
+        return cycles.stream().map(c -> c.getId().get()).filter(c -> c.equals(id)).findFirst().isPresent();
+    }
+
+
+    @Override
+    public String toString(){
+        return new StringBuilder("PlayerRow[")
+                .append(this.getLabel().get()).append(",")
+                .append(this.getGotoLabel().get()).append(",")
+                .append(this.getGotoRepeat().get()).append(",(")
+                .append(this.cycles.stream().map(c -> c.getId().get()).collect(Collectors.joining(" / ")))
+                .append(")]")
+                .toString();
+    }
 
     public final static PlayerRow getFirst(Cycle first){
         PlayerRow playerRow = new PlayerRow();

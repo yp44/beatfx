@@ -5,6 +5,8 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import lombok.Data;
 
+import java.util.Optional;
+
 @Data
 public class BeatfxModel {
 
@@ -13,6 +15,13 @@ public class BeatfxModel {
     private ListProperty<PlayerRow> playerRows = new SimpleListProperty<>(FXCollections.observableArrayList(PlayerRow.getFirst(cycles.get(0))));
 
     public BeatfxModel(){
+    }
+
+    public Optional<Cycle> getCycleById(String id){
+        if(id == null || id.isEmpty()){
+            return Optional.empty();
+        }
+        return cycles.stream().filter(c -> c.getId().get().equals(id)).findFirst();
     }
 
 }

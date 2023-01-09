@@ -1,18 +1,29 @@
 package org.beatfx.app.ui;
 
 
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
+import javafx.util.Callback;
 import org.beatfx.app.model.BeatfxModel;
 import org.beatfx.app.model.Cycle;
 import org.beatfx.app.model.PlayerRow;
+import org.beatfx.app.util.Defaults;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class EditorPane2 extends TableView {
@@ -33,10 +44,6 @@ public class EditorPane2 extends TableView {
         beatfxModel.getCycles().addListener(new ChangeListener<ObservableList<Cycle>>() {
             @Override
             public void changed(ObservableValue<? extends ObservableList<Cycle>> observableValue, ObservableList<Cycle> oldList, ObservableList<Cycle> newList) {
-                System.out.println("Change cycles list, size : " + newList.size() + "/ " + EditorPane2.this.beatfxModel.getCycles().size());
-                System.out.println("OLD : " + oldList.stream().map(c -> c.getId().get()).collect(Collectors.joining(",")));
-                System.out.println("NEW : " + newList.stream().map(c -> c.getId().get()).collect(Collectors.joining(",")));
-                System.out.println("Observable : " + observableValue.getValue().stream().map(e -> String.valueOf(e)).collect(Collectors.joining(",")));
                 EditorPane2.this.refreshColumns();
             }
         });
@@ -52,17 +59,16 @@ public class EditorPane2 extends TableView {
         this.getColumns().add(gotoRepeat);
 
         this.beatfxModel.getCycles().stream().forEach(c -> {
-            TableColumn column = new TableColumn(c.getId().get());
-            column.textProperty().bindBidirectional(c.getId());
-            this.getColumns().add(column);
+            TableColumn tc = buildCycleColumn(c);
+            this.getColumns().add(tc);
         });
 
         this.getColumns().stream().forEach(c -> ((TableColumn) c).setReorderable(false));
 
+        this.setItems(this.beatfxModel.getPlayerRows());
     }
 
     private void refreshColumns() {
-        System.out.println("Refresh columns");
         List<TableColumn> columnsCycle = this.getColumns().subList(SURNUMERARY_COLUMNS, this.getColumns().size());
         if (this.beatfxModel.getCycles().size() > (this.getColumns().size() - SURNUMERARY_COLUMNS)) {
             // A new cycle has been added
@@ -80,22 +86,99 @@ public class EditorPane2 extends TableView {
         }
     }
 
-    private void addColumn(Cycle c) {
-        TableColumn column = new TableColumn(c.getId().get());
+    private TableColumn<PlayerRow, Boolean> buildCycleColumn(Cycle c) {
+        TableColumn<PlayerRow, Boolean> column = new TableColumn(c.getId().get());
         column.textProperty().bindBidirectional(c.getId());
         column.setReorderable(false);
-        this.getColumns().add(column);
+        column.setEditable(false);
+
+        column.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<PlayerRow, Boolean>, ObservableValue<Boolean>>() {
+            public ObservableValue<Boolean> call(TableColumn.CellDataFeatures<PlayerRow, Boolean> p) {
+                boolean hasCycle = p.getValue().hasCycle(column.getText());
+                return new SimpleBooleanProperty(hasCycle);
+            }
+        });
+
+        column.setCellFactory(col -> {
+            TableCell<PlayerRow, Boolean> cell = new TableCell<PlayerRow, Boolean>() {
+                @Override
+                public void updateItem(Boolean item, boolean empty) {
+                    super.updateItem(item, empty);
+
+                    if (empty || item == null) {
+                        this.setStyle("-fx-background-color: " + Defaults.NULL_CELL_COLOR);
+                    } else {
+                        if (item) {
+                            this.setStyle("-fx-background-color: " + Defaults.ACTIVE_CYCLE_COLOR);
+                        } else {
+                            this.setStyle("-fx-background-color: " + Defaults.NOTACTIVE_CYCLE_COLOR);
+                        }
+                    }
+                }
+
+            };
+
+            cell.setOnMouseClicked(e -> {
+                if(cell.getIndex() >= cell.getTableView().getItems().size()){
+                    // Click on a non-active cell
+                    return;
+                }
+                PlayerRow playerRow = cell.getTableView().getItems().get(cell.getIndex());
+                Optional<Cycle> cycleInPlayerRowList = playerRow.getCycles().stream().filter(cc -> cc.getId().get().equals(column.getText())).findFirst();
+                Optional<Cycle> columnCycle = beatfxModel.getCycleById(column.getText());
+
+                if (cycleInPlayerRowList.isPresent()) {
+                    playerRow.getCycles().remove(columnCycle.get());
+                } else {
+                    playerRow.getCycles().add(columnCycle.get());
+                }
+
+                setCellStyle(cell);
+            });
+
+            setCellStyle(cell);
+            return cell;
+        });
+
+        return column;
     }
 
-    private void removeColumn(TableColumn column){
+    private void setCellStyle(TableCell<PlayerRow, Boolean> cell) {
+        if (cell.getTableView() == null || cell.getTableColumn() == null) {
+            // not yet in a table
+            return;
+        }
+
+        PlayerRow playerRow = cell.getTableView().getItems().get(cell.getIndex());
+        Optional<Cycle> cycleInPlayerRowList = playerRow.getCycles().stream().filter(cc -> cc.getId().get().equals(cell.getTableColumn().getText())).findFirst();
+
+        if (cycleInPlayerRowList.isPresent()) {
+            cell.setStyle("-fx-background-color: " + Defaults.ACTIVE_CYCLE_COLOR);
+        } else {
+            cell.setStyle("-fx-background-color: " + Defaults.NOTACTIVE_CYCLE_COLOR);
+        }
+    }
+
+    private void addColumn(Cycle c) {
+        TableColumn tc = buildCycleColumn(c);
+        this.getColumns().add(tc);
+    }
+
+    private void removeColumn(TableColumn column) {
         this.getColumns().remove(column);
-        for(PlayerRow playerRow : this.beatfxModel.getPlayerRows()){
+        for (PlayerRow playerRow : this.beatfxModel.getPlayerRows()) {
             Iterator<Cycle> cycleIterator = playerRow.getCycles().iterator();
-            while (cycleIterator.hasNext()){
-                Cycle cycle = cycleIterator.next();
-                if(cycle.getId().get().equals(column.textProperty().get())){
-                    this.beatfxModel.getCycles().remove(cycle);
+            Cycle cycle = null;
+            boolean toRemove = false;
+            while (cycleIterator.hasNext()) {
+                cycle = cycleIterator.next();
+                if (cycle.getId().get().equals(column.getText())) {
+                    toRemove = true;
+                    break;
                 }
+            }
+            if (toRemove) {
+                playerRow.getCycles().remove(cycle);
             }
         }
     }
