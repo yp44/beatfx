@@ -2,18 +2,16 @@ package org.beatfx.app.ui;
 
 
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
-import javafx.scene.control.Label;
+import javafx.scene.control.Button;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import org.beatfx.app.model.BeatfxModel;
 import org.beatfx.app.model.Cycle;
@@ -26,13 +24,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class EditorPane2 extends TableView {
+public class EditorPane extends HBox {
 
     private final static int SURNUMERARY_COLUMNS = 3;
 
     private BeatfxModel beatfxModel;
 
-    public EditorPane2(BeatfxModel beatfxModel) {
+    private TableView<PlayerRow> tableView = new TableView<>();
+
+    public EditorPane(BeatfxModel beatfxModel) {
         super();
         this.beatfxModel = beatfxModel;
 
@@ -44,33 +44,56 @@ public class EditorPane2 extends TableView {
         beatfxModel.getCycles().addListener(new ChangeListener<ObservableList<Cycle>>() {
             @Override
             public void changed(ObservableValue<? extends ObservableList<Cycle>> observableValue, ObservableList<Cycle> oldList, ObservableList<Cycle> newList) {
-                EditorPane2.this.refreshColumns();
+                EditorPane.this.refreshColumns();
             }
         });
 
-        this.setEditable(true);
+        tableView.setEditable(true);
 
         TableColumn labelColumn = new TableColumn("Label");
+        labelColumn.setEditable(true);
         TableColumn gotoColumn = new TableColumn("Goto");
+        gotoColumn.setEditable(true);
         TableColumn gotoRepeat = new TableColumn("Repeat");
+        gotoRepeat.setEditable(true);
 
-        this.getColumns().add(labelColumn);
-        this.getColumns().add(gotoColumn);
-        this.getColumns().add(gotoRepeat);
+
+        tableView.getColumns().add(labelColumn);
+        tableView.getColumns().add(gotoColumn);
+        tableView.getColumns().add(gotoRepeat);
 
         this.beatfxModel.getCycles().stream().forEach(c -> {
             TableColumn tc = buildCycleColumn(c);
-            this.getColumns().add(tc);
+            tableView.getColumns().add(tc);
         });
 
-        this.getColumns().stream().forEach(c -> ((TableColumn) c).setReorderable(false));
+        tableView.getColumns().stream().forEach(c -> ((TableColumn) c).setReorderable(false));
 
-        this.setItems(this.beatfxModel.getPlayerRows());
+        tableView.setItems(this.beatfxModel.getPlayerRows());
+
+        VBox tableMenu = new VBox();
+
+        Spinner<Number> numberCtrl = new Spinner<>(1, 100, 1);
+        numberCtrl.editableProperty().setValue(true);
+        tableMenu.getChildren().add(numberCtrl);
+
+        Button addBtn = new Button("Add rows");
+        addBtn.setOnAction(e -> {
+            List<PlayerRow> newPlayerRows = new ArrayList<>();
+            int n = numberCtrl.getValueFactory().getValue().intValue();
+            for (int i = 0; i < n; i++) {
+                newPlayerRows.add(new PlayerRow());
+            }
+            this.beatfxModel.getPlayerRows().addAll(newPlayerRows);
+        });
+        tableMenu.getChildren().add(addBtn);
+
+        this.getChildren().addAll(tableView, tableMenu);
     }
 
     private void refreshColumns() {
-        List<TableColumn> columnsCycle = this.getColumns().subList(SURNUMERARY_COLUMNS, this.getColumns().size());
-        if (this.beatfxModel.getCycles().size() > (this.getColumns().size() - SURNUMERARY_COLUMNS)) {
+        List<TableColumn<PlayerRow, ?>> columnsCycle = tableView.getColumns().subList(SURNUMERARY_COLUMNS, tableView.getColumns().size());
+        if (this.beatfxModel.getCycles().size() > (tableView.getColumns().size() - SURNUMERARY_COLUMNS)) {
             // A new cycle has been added
             List<String> columnsName = new ArrayList<>();
             for (TableColumn c : columnsCycle) {
@@ -119,7 +142,7 @@ public class EditorPane2 extends TableView {
             };
 
             cell.setOnMouseClicked(e -> {
-                if(cell.getIndex() >= cell.getTableView().getItems().size()){
+                if (cell.getIndex() >= cell.getTableView().getItems().size()) {
                     // Click on a non-active cell
                     return;
                 }
@@ -161,11 +184,11 @@ public class EditorPane2 extends TableView {
 
     private void addColumn(Cycle c) {
         TableColumn tc = buildCycleColumn(c);
-        this.getColumns().add(tc);
+        tableView.getColumns().add(tc);
     }
 
     private void removeColumn(TableColumn column) {
-        this.getColumns().remove(column);
+        tableView.getColumns().remove(column);
         for (PlayerRow playerRow : this.beatfxModel.getPlayerRows()) {
             Iterator<Cycle> cycleIterator = playerRow.getCycles().iterator();
             Cycle cycle = null;

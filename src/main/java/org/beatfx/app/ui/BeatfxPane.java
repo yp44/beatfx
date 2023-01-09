@@ -9,7 +9,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.beatfx.app.model.BeatfxModel;
 import org.beatfx.app.model.Cycle;
@@ -25,7 +24,7 @@ public class BeatfxPane extends SplitPane {
 
     private TabPane cyclesPane = new TabPane();
 
-    private EditorPane2 editorPane;
+    private EditorPane editorPane;
     private Tab addTab = new Tab("+");
 
     public BeatfxPane(BeatfxModel beatfxModel) {
@@ -89,7 +88,7 @@ public class BeatfxPane extends SplitPane {
 
     private void buildEditorPane() {
         //this.editorPane = new EditorPane(this.beatfxModel);
-        this.editorPane = new EditorPane2(this.beatfxModel);
+        this.editorPane = new EditorPane(this.beatfxModel);
     }
 
     public void stageResized(Stage stage) {
