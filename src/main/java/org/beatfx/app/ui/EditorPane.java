@@ -7,9 +7,12 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
@@ -24,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class EditorPane extends HBox {
+public class EditorPane extends VBox {
 
     private final static int SURNUMERARY_COLUMNS = 3;
 
@@ -50,13 +53,56 @@ public class EditorPane extends HBox {
 
         tableView.setEditable(true);
 
-        TableColumn labelColumn = new TableColumn("Label");
+        TableColumn<PlayerRow, String> labelColumn = new TableColumn<>("Label");
+        labelColumn.setCellValueFactory(new PropertyValueFactory<>("label"));
         labelColumn.setEditable(true);
-        TableColumn gotoColumn = new TableColumn("Goto");
-        gotoColumn.setEditable(true);
-        TableColumn gotoRepeat = new TableColumn("Repeat");
-        gotoRepeat.setEditable(true);
+        labelColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        labelColumn.setOnEditCommit(e -> {
+            PlayerRow playerRow = e.getRowValue();
+            String newLabel = e.getNewValue();
+            playerRow.getLabelProperty().setValue(newLabel);
+        });
 
+        TableColumn<PlayerRow, String> gotoColumn = new TableColumn<>("Goto");
+        gotoColumn.setCellValueFactory(new PropertyValueFactory<>("gotoLabel"));
+        gotoColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        gotoColumn.setEditable(true);
+        gotoColumn.setOnEditCommit(e -> {
+            PlayerRow playerRow = e.getRowValue();
+            String newLabel = e.getNewValue();
+            playerRow.getGotoLabelProperty().setValue(newLabel);
+        });
+
+        TableColumn<PlayerRow, Integer> gotoRepeat = new TableColumn("Repeat");
+        gotoRepeat.setCellValueFactory(new PropertyValueFactory<>("gotoRepeat"));
+        gotoRepeat.setEditable(true);
+        gotoRepeat.setCellFactory(col -> new TableCell<PlayerRow, Integer>(){
+            Spinner<Integer> spinner = new Spinner<>(0, 100, 0);
+            {
+                spinner.maxWidthProperty().setValue(75);
+            }
+
+            @Override
+            public void updateItem(Integer item, boolean empty){
+                super.updateItem(item, empty);
+
+                if(item == null || empty){
+                    setText(null);
+                    setGraphic(null);
+                }
+                else{
+                    spinner.getValueFactory().setValue(item);
+                    spinner.valueProperty().addListener(new ChangeListener<Integer>() {
+                        @Override
+                        public void changed(ObservableValue<? extends Integer> observableValue, Integer oldInt, Integer newInt) {
+                            PlayerRow playerRow = getTableRow().getItem();
+                            playerRow.getGotoRepeatProperty().setValue(newInt);
+                        }
+                    });
+                    setGraphic(spinner);
+                }
+            }
+        });
 
         tableView.getColumns().add(labelColumn);
         tableView.getColumns().add(gotoColumn);
@@ -71,7 +117,7 @@ public class EditorPane extends HBox {
 
         tableView.setItems(this.beatfxModel.getPlayerRows());
 
-        VBox tableMenu = new VBox();
+        HBox tableMenu = new HBox();
 
         Spinner<Number> numberCtrl = new Spinner<>(1, 100, 1);
         numberCtrl.editableProperty().setValue(true);
@@ -88,7 +134,7 @@ public class EditorPane extends HBox {
         });
         tableMenu.getChildren().add(addBtn);
 
-        this.getChildren().addAll(tableView, tableMenu);
+        this.getChildren().addAll(tableMenu, tableView);
     }
 
     private void refreshColumns() {
@@ -150,6 +196,7 @@ public class EditorPane extends HBox {
                 Optional<Cycle> cycleInPlayerRowList = playerRow.getCycles().stream().filter(cc -> cc.getId().get().equals(column.getText())).findFirst();
                 Optional<Cycle> columnCycle = beatfxModel.getCycleById(column.getText());
 
+                System.out.println("Label : " + playerRow.getLabel());
                 if (cycleInPlayerRowList.isPresent()) {
                     playerRow.getCycles().remove(columnCycle.get());
                 } else {

@@ -34,27 +34,51 @@ public class PlayerRow {
      */
     private ListProperty<Cycle> cycles = new SimpleListProperty<>(FXCollections.observableArrayList());
 
-    public boolean hasCycle(String id){
-        if(id == null || id.isEmpty()){
+    public boolean hasCycle(String id) {
+        if (id == null || id.isEmpty()) {
             return false;
         }
 
         return cycles.stream().map(c -> c.getId().get()).filter(c -> c.equals(id)).findFirst().isPresent();
     }
 
+    public String getLabel() {
+        return this.label.get();
+    }
+
+    public StringProperty getLabelProperty() {
+        return this.label;
+    }
+
+    public String getGotoLabel() {
+        return this.gotoLabel.get();
+    }
+
+    public StringProperty getGotoLabelProperty() {
+        return this.gotoLabel;
+    }
+
+
+    public IntegerProperty getGotoRepeatProperty() {
+        return this.gotoRepeat;
+    }
+
+    public Integer getGotoRepeat() {
+        return this.gotoRepeat.get();
+    }
 
     @Override
-    public String toString(){
+    public String toString() {
         return new StringBuilder("PlayerRow[")
-                .append(this.getLabel().get()).append(",")
-                .append(this.getGotoLabel().get()).append(",")
-                .append(this.getGotoRepeat().get()).append(",(")
+                .append(this.getLabel()).append(",")
+                .append(this.getGotoLabel()).append(",")
+                .append(this.getGotoRepeat()).append(",(")
                 .append(this.cycles.stream().map(c -> c.getId().get()).collect(Collectors.joining(" / ")))
                 .append(")]")
                 .toString();
     }
 
-    public final static PlayerRow getFirst(Cycle first){
+    public final static PlayerRow getFirst(Cycle first) {
         PlayerRow playerRow = new PlayerRow();
         playerRow.getCycles().add(first);
 
