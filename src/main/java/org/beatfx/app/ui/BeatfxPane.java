@@ -9,6 +9,9 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.beatfx.app.model.BeatfxModel;
 import org.beatfx.app.model.Cycle;
@@ -66,9 +69,10 @@ public class BeatfxPane extends SplitPane {
         this.buildCyclePane();
         this.buildEditorPane();
 
-        //this.getChildren().addAll(cyclesPane, editorPane);
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setContent(editorPane);
+        editorPane.prefWidthProperty().bind(scrollPane.widthProperty());
+
         this.getItems().addAll(cyclesPane, scrollPane);
 
         this.getDividers().get(0).positionProperty().addListener(new ChangeListener<Number>() {

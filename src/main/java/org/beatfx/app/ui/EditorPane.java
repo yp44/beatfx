@@ -13,8 +13,12 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.util.Callback;
 import org.beatfx.app.model.BeatfxModel;
 import org.beatfx.app.model.Cycle;
@@ -38,12 +42,10 @@ public class EditorPane extends VBox {
     public EditorPane(BeatfxModel beatfxModel) {
         super();
         this.beatfxModel = beatfxModel;
-
         buildUI();
     }
 
     private void buildUI() {
-
         beatfxModel.getCycles().addListener(new ChangeListener<ObservableList<Cycle>>() {
             @Override
             public void changed(ObservableValue<? extends ObservableList<Cycle>> observableValue, ObservableList<Cycle> oldList, ObservableList<Cycle> newList) {
@@ -63,7 +65,7 @@ public class EditorPane extends VBox {
             playerRow.getLabelProperty().setValue(newLabel);
         });
 
-        TableColumn<PlayerRow, String> gotoColumn = new TableColumn<>("Goto");
+        TableColumn<PlayerRow, String> gotoColumn = new TableColumn<>("Renvoi");
         gotoColumn.setCellValueFactory(new PropertyValueFactory<>("gotoLabel"));
         gotoColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         gotoColumn.setEditable(true);
@@ -73,7 +75,7 @@ public class EditorPane extends VBox {
             playerRow.getGotoLabelProperty().setValue(newLabel);
         });
 
-        TableColumn<PlayerRow, Integer> gotoRepeat = new TableColumn("Repeat");
+        TableColumn<PlayerRow, Integer> gotoRepeat = new TableColumn("Répétition");
         gotoRepeat.setCellValueFactory(new PropertyValueFactory<>("gotoRepeat"));
         gotoRepeat.setEditable(true);
         gotoRepeat.setCellFactory(col -> new TableCell<PlayerRow, Integer>(){

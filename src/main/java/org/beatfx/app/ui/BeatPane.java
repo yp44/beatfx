@@ -48,7 +48,7 @@ public class BeatPane extends HBox {
             File f = fileChooser.showOpenDialog(null);
             file.textProperty().setValue(f.getAbsolutePath());
         });
-        this.getChildren().addAll(this.beatID, new Label("MP3 file"), file, selectFile);
+        this.getChildren().addAll(this.beatID, new Label("Sample file"), file, selectFile);
     }
 
 }
