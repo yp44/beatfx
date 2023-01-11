@@ -1,14 +1,10 @@
 package org.beatfx.app.ui;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
-import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -29,9 +25,6 @@ import java.util.List;
 
 public class CycleTab extends Tab {
 
-    private final static int BEAT_CIRCLE_RADIUS = 40;
-
-
     private HBox menuPane;
 
     private Pane cyclePane;
@@ -42,7 +35,7 @@ public class CycleTab extends Tab {
 
     private ImageView needle;
 
-    private final List<Circle> beatCircles = new ArrayList<>();
+    private final List<BeatCircle> beatCircles = new ArrayList<>();
 
     private final Cycle cycle;
 
@@ -56,7 +49,7 @@ public class CycleTab extends Tab {
     }
 
 
-    public void stageResized(Stage stage){
+    public void stageResized(Stage stage) {
         redrawCycle(stage);
     }
 
@@ -80,6 +73,7 @@ public class CycleTab extends Tab {
 
     private HBox buildMenuPane() {
         HBox menu = new HBox();
+        menu.setStyle("-fx-background-color: " + Defaults.CYCLE_PANE_COLOR);
         menu.setPadding(new Insets(Defaults.PADDING, Defaults.PADDING, Defaults.PADDING, Defaults.PADDING));
         menu.setSpacing(Defaults.PADDING);
 
@@ -115,11 +109,12 @@ public class CycleTab extends Tab {
 
     private void buildCyclePane() {
         if (this.cyclePane != null) {
-            System.out.println("CLEAR PANEL!!!");
             this.cyclePane.getChildren().clear();
         } else {
             this.cyclePane = new Pane();
         }
+
+        this.cyclePane.setStyle("-fx-background-color: " + Defaults.CYCLE_PANE_COLOR);
 
 
         //cycle.setBackground(new Background(new BackgroundFill(new Color(0.7, 0.5, 0.5, 1), new CornerRadii(0), new Insets(0, 0, 0, 0))));
@@ -127,7 +122,7 @@ public class CycleTab extends Tab {
 
         mainCircle = new Circle(100, Color.TRANSPARENT);
         mainCircle.setCenterX(this.cyclePane.getWidth() / 2);
-        mainCircle.setCenterY(this.cyclePane.getHeight() / 2 + BEAT_CIRCLE_RADIUS);
+        mainCircle.setCenterY(this.cyclePane.getHeight() / 2 + Defaults.BEAT_CIRCLE_RADIUS);
         mainCircle.setStroke(Color.BLACK);
         mainCircle.setStrokeWidth(1);
         mainCircle.getStrokeDashArray().addAll(10.0, 10.0);
@@ -137,11 +132,9 @@ public class CycleTab extends Tab {
         double angleStep = (2 * Math.PI) / this.cycle.getNbSlots().get();
         for (int i = 0; i < this.cycle.getNbSlots().get(); i++) {
             double angle = (i * angleStep) - (Math.PI / 2);
-            Beat beat = new Beat(Defaults.NEW_BEAT_NAME + (i+1), angle);
-            Circle c = new Circle(BEAT_CIRCLE_RADIUS, Color.rgb(255, 200, 60));
-            c.setCenterX(this.cyclePane.getWidth() / 2);
-            c.setCenterY(this.cyclePane.getHeight() / 2);
-            c.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            Beat beat = new Beat(Defaults.NEW_BEAT_NAME + (i + 1), angle);
+            BeatCircle c = new BeatCircle(Defaults.BEAT_CIRCLE_RADIUS, Color.rgb(255, 200, 60), beat);
+            c.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<>() {
                 public void handle(MouseEvent e) {
                     beatConfPane.setBeat(beat);
                 }
@@ -153,26 +146,27 @@ public class CycleTab extends Tab {
         this.cyclePane.getChildren().addAll(mainCircle);
         this.cyclePane.getChildren().addAll(this.beatCircles);
 
-        this.needle = new ImageView(new Image(CycleTab.class.getResourceAsStream("/needle.png")));
+        this.needle = new ImageView(new Image(CycleTab.class.getResourceAsStream(Defaults.NEEDLE_RESOURCE)));
         this.cyclePane.getChildren().add(needle);
     }
 
-    private void redrawCycle(){
+    private void redrawCycle() {
         this.redrawCycle(null);
     }
 
-    public void redrawCycle(double height){
+    public void redrawCycle(double height) {
         this.lastStageHeight = height;
         redrawCycle();
     }
+
     public void redrawCycle(Stage stage) {
         double menuHeight = menuPane.getPrefHeight();
         lastStageHeight = stage == null ? lastStageHeight : stage.getHeight();
         double height = lastStageHeight - menuHeight;
         this.cyclePane.setPrefHeight(height);
 
-        double minRadius = (cyclePane.getWidth() > cyclePane.getHeight() ? cyclePane.getHeight() : cyclePane.getWidth()) / 2;
-        double realRadius = minRadius - BEAT_CIRCLE_RADIUS - Defaults.PADDING;
+        double minRadius = Math.min(cyclePane.getWidth(), cyclePane.getHeight()) / 2;
+        double realRadius = minRadius - Defaults.BEAT_CIRCLE_RADIUS - Defaults.PADDING;
 
         double xCenter = cyclePane.getWidth() / 2;
         double yCenter = cyclePane.getHeight() / 2;
@@ -181,13 +175,10 @@ public class CycleTab extends Tab {
         mainCircle.centerXProperty().setValue(xCenter);
         mainCircle.centerYProperty().setValue(yCenter);
 
-        double angleStep = (2 * Math.PI) / this.beatCircles.size();
-
         int i = 0;
-        for (Circle c : this.beatCircles) {
-            c.centerXProperty().setValue(xCenter + (mainCircle.radiusProperty().get() * Math.cos(this.cycle.getBeat(i).getAngle().get())));
-            c.centerYProperty().setValue(yCenter + (mainCircle.radiusProperty().get() * Math.sin(this.cycle.getBeat(i).getAngle().get())));
-
+        for (BeatCircle c : this.beatCircles) {
+            c.setXProperty(xCenter + (mainCircle.radiusProperty().get() * Math.cos(this.cycle.getBeat(i).getAngle().get())));
+            c.setYProperty(yCenter + (mainCircle.radiusProperty().get() * Math.sin(this.cycle.getBeat(i).getAngle().get())));
             i++;
         }
 

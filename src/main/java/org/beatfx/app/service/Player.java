@@ -1,6 +1,5 @@
 package org.beatfx.app.service;
 
-import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import org.beatfx.app.model.BeatfxModel;
 import org.beatfx.app.model.Cycle;
@@ -8,7 +7,6 @@ import org.beatfx.app.model.FullComposition;
 import org.beatfx.app.model.PlayerRow;
 import org.beatfx.app.service.player.CyclePlayer;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class Player {
 
-    private BeatfxModel beatfxModel;
+    private final BeatfxModel beatfxModel;
 
     public Player(BeatfxModel beatfxModel) {
         this.beatfxModel = beatfxModel;
@@ -30,17 +28,13 @@ public class Player {
     }
 
     private FullComposition beatfxModel2FullCompo(BeatfxModel beatfxModel) {
-        /*Map<String, PlayerRow> playerRowByLabel = beatfxModel.getPlayerRows().stream()
-                .filter(p -> p.getLabel() != null && !p.getLabel().isEmpty())
-                .collect(Collectors.toMap(p -> p.getLabel(), p -> p));*/
-
         Map<String, Integer> indexByLabel = new HashMap<>();
         for (int i = 0; i < beatfxModel.getPlayerRows().size(); i++) {
             PlayerRow playerRow = beatfxModel.getPlayerRows().get(i);
             String label = playerRow.getLabel().trim();
-            if (label != null && !label.isEmpty()) {
+            if (!label.isEmpty()) {
                 if (indexByLabel.containsKey(label)) {
-                    throw new IllegalStateException(String.format("Several rows has the same label '%S': %s & %s ", label, indexByLabel.get(label), i));
+                    throw new IllegalStateException(String.format("Several rows has the same label '%s': %s & %s ", label, indexByLabel.get(label), i));
                 }
                 indexByLabel.put(label, i);
                 //System.out.println(String.format("indexByLabel: %s / %s", label, i));
@@ -60,7 +54,7 @@ public class Player {
             // Is there any gotoLabel ? What is its index ?
             int gotoIndex = -1;
             String gotoLabel = playerRow.getGotoLabel().trim();
-            if (gotoLabel != null && !gotoLabel.isEmpty()) {
+            if (!gotoLabel.isEmpty()) {
                 gotoIndex = Optional.ofNullable(indexByLabel.get(gotoLabel)).orElse(-1);
             }
             //System.out.println(String.format("GotoLabel %s : %s", gotoLabel, gotoIndex));
@@ -106,9 +100,7 @@ public class Player {
             System.out.println("Play " + i);
             nbActivePlayer.incrementAndGet();
             mediaPlayer.play();
-            mediaPlayer.setOnEndOfMedia(() -> {
-                nbActivePlayer.decrementAndGet();
-            });
+            mediaPlayer.setOnEndOfMedia(() -> nbActivePlayer.decrementAndGet());
             int sleep = cyclePlayer.getDuration();
             System.out.println("SLEEP : " + sleep);
             Thread.sleep(sleep);

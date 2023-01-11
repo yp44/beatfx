@@ -9,34 +9,27 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.beatfx.app.model.BeatfxModel;
 import org.beatfx.app.model.Cycle;
 import org.beatfx.app.util.Defaults;
 
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 public class BeatfxPane extends SplitPane {
 
     private final BeatfxModel beatfxModel;
 
-    private TabPane cyclesPane = new TabPane();
+    private final TabPane cyclesPane = new TabPane();
 
     private EditorPane editorPane;
-    private Tab addTab = new Tab("+");
+    private final Tab addTab = new Tab("+");
 
     public BeatfxPane(BeatfxModel beatfxModel) {
         this.beatfxModel = beatfxModel;
         buildUI();
-    }
-
-    public BeatfxModel getBeatfxModel() {
-        return this.beatfxModel;
     }
 
     private void buildUI() {
@@ -44,7 +37,7 @@ public class BeatfxPane extends SplitPane {
         addTab.setClosable(false);
         cyclesPane.getTabs().add(addTab);
 
-        cyclesPane.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {
+        cyclesPane.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<>() {
             @Override
             public void changed(ObservableValue<? extends Tab> observableValue, Tab oldTab, Tab newTab) {
                 if (newTab == addTab) {
@@ -53,13 +46,13 @@ public class BeatfxPane extends SplitPane {
                     beatfxModel.getCycles().add(newCycle);
 
                     CycleTab newCycleTab = new CycleTab(newCycle);
-                    newCycleTab.setOnClosed(new EventHandler<Event>() {
+                    newCycleTab.setOnClosed(new EventHandler<>() {
                         @Override
                         public void handle(Event event) {
                             beatfxModel.getCycles().remove(newCycle);
                         }
                     });
-                    cyclesPane.getTabs().addAll(cyclesPane.getTabs().size() - 1, Arrays.asList(newCycleTab));
+                    cyclesPane.getTabs().addAll(cyclesPane.getTabs().size() - 1, Collections.singleton(newCycleTab));
                     cyclesPane.getSelectionModel().selectPrevious();
                     newCycleTab.redrawCycle(cyclesPane.getTabs().get(0).getContent().getBoundsInParent().getHeight());
                 }
@@ -75,7 +68,7 @@ public class BeatfxPane extends SplitPane {
 
         this.getItems().addAll(cyclesPane, scrollPane);
 
-        this.getDividers().get(0).positionProperty().addListener(new ChangeListener<Number>() {
+        this.getDividers().get(0).positionProperty().addListener(new ChangeListener<>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
                 ((CycleTab)cyclesPane.getSelectionModel().getSelectedItem()).redrawCycle(cyclesPane.getTabs().get(0).getContent().getBoundsInParent().getHeight());
@@ -86,12 +79,11 @@ public class BeatfxPane extends SplitPane {
 
     private void buildCyclePane() {
         cyclesPane.getTabs().clear();
-        cyclesPane.getTabs().addAll(beatfxModel.getCycles().stream().map(c -> new CycleTab(c)).collect(Collectors.toList()));
+        cyclesPane.getTabs().addAll(beatfxModel.getCycles().stream().map(CycleTab::new).collect(Collectors.toList()));
         cyclesPane.getTabs().add(addTab);
     }
 
     private void buildEditorPane() {
-        //this.editorPane = new EditorPane(this.beatfxModel);
         this.editorPane = new EditorPane(this.beatfxModel);
     }
 

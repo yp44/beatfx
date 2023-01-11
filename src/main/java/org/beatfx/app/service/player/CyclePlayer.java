@@ -19,7 +19,7 @@ public class CyclePlayer {
     public CyclePlayer(Cycle cycle){
         this.beats = cycle.getBeats();
         this.duration = cycle.getDuration().get() / cycle.getNbSlots().get();
-        System.out.println(String.format("Duration: %s, nbSlots: %s, sleep: %s", cycle.getDuration().get(), cycle.getNbSlots().get(), duration));
+        System.out.printf("Duration: %s, nbSlots: %s, sleep: %s%n", cycle.getDuration().get(), cycle.getNbSlots().get(), duration);
 
         System.out.println("Nb beats : " + cycle.getBeats().size());
 

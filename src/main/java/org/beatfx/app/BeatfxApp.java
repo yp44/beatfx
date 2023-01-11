@@ -18,10 +18,10 @@ import org.beatfx.app.ui.BeatfxPane;
 
 public class BeatfxApp extends Application {
 
-    private BeatfxModel beatfxModel = new BeatfxModel();
+    private final BeatfxModel beatfxModel = new BeatfxModel();
 
     @Override
-    public void start(Stage stage) throws Exception {
+    public void start(Stage stage) {
 
         buildUI(stage);
 
@@ -35,14 +35,14 @@ public class BeatfxApp extends Application {
         VBox vbox = buildMenuBar(beatfxPane);
         Scene scene = new Scene(vbox, bounds.getWidth() / 2, bounds.getHeight() / 2);
 
-        stage.widthProperty().addListener(new ChangeListener<Number>() {
+        stage.widthProperty().addListener(new ChangeListener<>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number oldWidth, Number newWidth) {
                 beatfxPane.stageResized(stage);
             }
         });
 
-        stage.heightProperty().addListener(new ChangeListener<Number>() {
+        stage.heightProperty().addListener(new ChangeListener<>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number oldWidth, Number newWidth) {
                 beatfxPane.stageResized(stage);
@@ -62,9 +62,7 @@ public class BeatfxApp extends Application {
         actions.getItems().add(stop);
         menuBar.getMenus().add(actions);
 
-        play.setOnAction(e -> {
-            play();
-        });
+        play.setOnAction(e -> play());
 
         stop.setOnAction(e -> {
             System.out.println("Stop !");
@@ -74,9 +72,9 @@ public class BeatfxApp extends Application {
     }
 
     private void play(){
-        Task<Void> playTask = new Task<Void>() {
+        Task<Void> playTask = new Task<>() {
             @Override
-            protected Void call() throws Exception {
+            protected Void call() {
                 try {
                     Player player = new Player(BeatfxApp.this.beatfxModel);
                     player.play();

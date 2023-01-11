@@ -1,7 +1,6 @@
 package org.beatfx.app.model;
 
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.Property;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -37,10 +36,6 @@ public class Cycle {
 
     public void addBeat(Beat beat){
         this.beats.add(beat);
-    }
-
-    public void removeBeat(Beat beat){
-        this.beats.remove(beat);
     }
 
     public void clearAllBeats(){

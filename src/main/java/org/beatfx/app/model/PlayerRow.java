@@ -39,7 +39,7 @@ public class PlayerRow {
             return false;
         }
 
-        return cycles.stream().map(c -> c.getId().get()).filter(c -> c.equals(id)).findFirst().isPresent();
+        return cycles.stream().map(c -> c.getId().get()).anyMatch(c -> c.equals(id));
     }
 
     public String getLabel() {
@@ -69,16 +69,15 @@ public class PlayerRow {
 
     @Override
     public String toString() {
-        return new StringBuilder("PlayerRow[")
-                .append(this.getLabel()).append(",")
-                .append(this.getGotoLabel()).append(",")
-                .append(this.getGotoRepeat()).append(",(")
-                .append(this.cycles.stream().map(c -> c.getId().get()).collect(Collectors.joining(" / ")))
-                .append(")]")
-                .toString();
+        return "PlayerRow[" +
+                this.getLabel() + "," +
+                this.getGotoLabel() + "," +
+                this.getGotoRepeat() + ",(" +
+                this.cycles.stream().map(c -> c.getId().get()).collect(Collectors.joining(" / ")) +
+                ")]";
     }
 
-    public final static PlayerRow getFirst(Cycle first) {
+    public static PlayerRow getFirst(Cycle first) {
         PlayerRow playerRow = new PlayerRow();
         playerRow.getCycles().add(first);
 

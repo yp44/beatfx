@@ -1,8 +1,5 @@
 package org.beatfx.app.ui;
 
-import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -15,8 +12,8 @@ import java.io.File;
 
 public class BeatPane extends HBox {
 
-    private TextField beatID = new TextField("#");
-    private TextField file = new TextField("");
+    private final TextField beatID = new TextField("#");
+    private final TextField file = new TextField("");
 
     private Beat lastBeat = null;
 
@@ -39,6 +36,7 @@ public class BeatPane extends HBox {
     }
 
     private void buildUI() {
+        this.setStyle("-fx-background-color: " + Defaults.CYCLE_PANE_COLOR);
         this.setSpacing(Defaults.PADDING);
         file.setMinWidth(300);
         Button selectFile = new Button("...");
