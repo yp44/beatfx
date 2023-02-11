@@ -70,7 +70,7 @@ public class EditorPane extends VBox {
             playerRow.getGotoLabelProperty().setValue(newLabel);
         });
 
-        TableColumn<PlayerRow, Integer> gotoRepeat = new TableColumn<>("Répétition");
+        TableColumn<PlayerRow, Integer> gotoRepeat = new TableColumn<>("RÃ©pÃ©tition");
         gotoRepeat.setCellValueFactory(new PropertyValueFactory<>("gotoRepeat"));
         gotoRepeat.setEditable(true);
         gotoRepeat.setCellFactory(col -> new TableCell<>(){

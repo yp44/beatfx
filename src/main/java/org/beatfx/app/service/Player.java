@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,41 @@ public class Player {
     public void play() {
         System.out.println("======================= PLAY");
         FullComposition fullComposition = beatfxModel2FullCompo(this.beatfxModel);
+
+        List<List<FullComposition.PlayableCycle>> compo = fullComposition.getCompo();
+        for (List<FullComposition.PlayableCycle> row : compo) { // For each compo row
+            CountDownLatch syncRow = new CountDownLatch(row.size());
+            CountDownLatch latch = new CountDownLatch(1);
+            for (FullComposition.PlayableCycle cycle : row) { // For each cycle of a row
+                Thread thread = new Thread(() -> {
+                    long sleep = cycle.getCycle().getDuration().get() / cycle.getCycle().getNbSlots().get();
+                    try {
+                        latch.await();
+                    } catch (InterruptedException e) {
+                        System.err.println("CountDownLatch failed: " + e.getMessage());
+                        throw new RuntimeException(e);
+                    }
+                    for (MediaPlayer mediaPlayer : cycle.getSamples()) { // For each beat of a cycle
+                        mediaPlayer.play();
+                        try {
+                            Thread.sleep(sleep);
+                        } catch (InterruptedException e) {
+                            System.err.println("Cycle sleep failed: " + e.getMessage());
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    syncRow.countDown();
+                });
+                thread.start();
+            }
+            latch.countDown();
+            try {
+                syncRow.await();
+            } catch (InterruptedException e) {
+                System.err.println("Row CountDownLatch failed: " + e.getMessage());
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private FullComposition beatfxModel2FullCompo(BeatfxModel beatfxModel) {
@@ -40,7 +76,6 @@ public class Player {
                 //System.out.println(String.format("indexByLabel: %s / %s", label, i));
             }
         }
-
 
 
         Map<Integer, Integer> repeat = new HashMap<>();
@@ -76,10 +111,9 @@ public class Player {
             repeat.put(i, gotoRepeat);
             //repeat.entrySet().stream().forEach(e -> System.out.println(String.format("Repeat: %s:%s", e.getKey(), e.getValue())));
 
-            if(gotoRepeat > -1){
+            if (gotoRepeat > -1) {
                 i = gotoIndex - 1;
-            }
-            else{
+            } else {
                 repeat.remove(i);
             }
 
