@@ -1,6 +1,7 @@
 package org.beatfx.app.util;
 
 public class Defaults {
+    public final static String FILE_PLACEHOLDER = "Please select a file...";
 
     public final static String NEEDLE_RESOURCE = "/needle.png";
 

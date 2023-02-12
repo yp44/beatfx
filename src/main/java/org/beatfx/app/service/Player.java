@@ -41,7 +41,10 @@ public class Player {
                         throw new RuntimeException(e);
                     }
                     for (MediaPlayer mediaPlayer : cycle.getSamples()) { // For each beat of a cycle
-                        mediaPlayer.play();
+                        if(mediaPlayer != null) {
+                            mediaPlayer.play();
+                            mediaPlayer.setOnEndOfMedia(() -> mediaPlayer.dispose());
+                        }
                         try {
                             Thread.sleep(sleep);
                         } catch (InterruptedException e) {
